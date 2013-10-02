@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>WeFiddle - A collaborative art space.</title>
+  <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+  <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/two.js/0.2.0/two.min.js"></script>
+</head>
+
+<body>
+<h2>Go ahead and fiddle with the canvas below. Make something!</h2>
+<script type="text/javascript">
+	
+  var two = new Two({
+    fullscreen: true,
+    autostart: true
+  }).appendTo(document.body);
+
+  var colorPallete = [
+  	'rgb(0, 0, 0)',
+  	'rgb(240, 60, 60)',
+  	'rgb(60, 240, 60)'
+  	];
+
+  var pixelSize = 40;
+  var startLeft = (two.width/2) - ((pixelSize+2)*4);
+  var startTop = 150;
+
+  var drawing = [];
+  function drawCanvas() {
+	for (var i=0; i<8; i++){	
+	  var row = [];
+	  for (var j=0; j<8; j++){
+	    row.push(colorPallete[0]);
+	    drawPixel(startLeft + j*(pixelSize+2), startTop + i*(pixelSize+2));
+	  }
+	  drawing.push(row);
+	}
+  }
+
+  function drawPixel(left, top) {
+  	var rect = two.makeRectangle(left, top, pixelSize, pixelSize);
+	rect.noStroke().fill = colorPallete[0];
+	rect.domElement = document.querySelector('#two-' + rect.id);
+
+	$(rect.domElement)
+	  .css('cursor', 'pointer')
+	  .click(function(e) {
+	  	var newColor = getNextColor(rect.fill);
+	    rect.fill = newColor;
+	    console.log('drawing['+ Math.floor((rect.id-1)/8) + ']['+(rect.id-1)%8+'] as ' + newColor);
+	    drawing[Math.floor((rect.id-1)/8)][(rect.id-1)%8] = newColor;
+	  });
+  }
+
+  
+  function getNextColor(currentColor) {
+  	var currentIndex = colorPallete.indexOf(currentColor);
+  	//console.log("Index: " + (currentIndex + 1) % colorPallete.length)
+    return colorPallete[(currentIndex + 1) % colorPallete.length];
+  }
+
+  function getRandomColor() {
+    return 'rgb('
+      + Math.floor(Math.random() * 255) + ','
+      + Math.floor(Math.random() * 255) + ','
+      + Math.floor(Math.random() * 255) + ')';
+  }
+
+  drawCanvas();
+
+</script>
+
+</body>
+</html>
