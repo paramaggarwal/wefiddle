@@ -7,13 +7,14 @@
 </head>
 
 <body>
-<h2>Go ahead and fiddle with the canvas below. Make something!</h2>
+<h2>WeFiddle - A collaborative art space.</h2>
+<p>Play around with the canvas below. Others can also edit it. Create art together!</p>
+<p>Code on <a href="http://github.com/paramaggarwal/wefiddle">Github</a>. Created by <a href="http://twitter.com/paramaggarwal">@paramaggarwal</a>, follow me!</p>
 <script type="text/javascript">
 	
   var firebaseCanvasData = new Firebase('https://wefiddle.firebaseio.com/');
 
   var two = new Two({
-    fullscreen: true,
     autostart: true
   }).appendTo(document.body);
 
