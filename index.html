@@ -2,14 +2,16 @@
 <html>
 <head>
   <title>WeFiddle - A collaborative art space.</title>
-  <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
-  <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/two.js/0.2.0/two.min.js"></script>
+  <script src="https://cdn.firebase.com/v0/firebase.js"></script>
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/two.js/0.2.0/two.min.js"></script>
 </head>
 
 <body>
 <h2>Go ahead and fiddle with the canvas below. Make something!</h2>
 <script type="text/javascript">
 	
+  var firebaseCanvasData = new Firebase('https://wefiddle.firebaseio.com/');
+
   var two = new Two({
     fullscreen: true,
     autostart: true
@@ -21,52 +23,91 @@
   	'rgb(60, 240, 60)'
   	];
 
+  var canvasSize = 8;
   var pixelSize = 40;
-  var startLeft = (two.width/2) - ((pixelSize+2)*4);
-  var startTop = 150;
-
-  var drawing = [];
-  function drawCanvas() {
-	for (var i=0; i<8; i++){	
-	  var row = [];
-	  for (var j=0; j<8; j++){
-	    row.push(colorPallete[0]);
-	    drawPixel(startLeft + j*(pixelSize+2), startTop + i*(pixelSize+2));
-	  }
-	  drawing.push(row);
-	}
-  }
-
-  function drawPixel(left, top) {
-  	var rect = two.makeRectangle(left, top, pixelSize, pixelSize);
-	rect.noStroke().fill = colorPallete[0];
-	rect.domElement = document.querySelector('#two-' + rect.id);
-
-	$(rect.domElement)
-	  .css('cursor', 'pointer')
-	  .click(function(e) {
-	  	var newColor = getNextColor(rect.fill);
-	    rect.fill = newColor;
-	    console.log('drawing['+ Math.floor((rect.id-1)/8) + ']['+(rect.id-1)%8+'] as ' + newColor);
-	    drawing[Math.floor((rect.id-1)/8)][(rect.id-1)%8] = newColor;
-	  });
-  }
-
+  var pixelSpacing = 2;
   
+  var drawingCanvas = [];
+
+  function createBlankCanvas() {
+    for (var row = 0; row < canvasSize; row++){  
+      var rowData = [];
+      for (var col = 0; col < canvasSize; col++){
+        var rect = createPixel(row, col, colorPallete[0]);
+        rowData.push({rect: rect});
+        firebaseCanvasData.child(row+':'+col).set(colorPallete[0]);
+      }
+      drawingCanvas.push(rowData);
+    }
+  }
+
+  function createPixel(row, col, color) {
+
+    var startLeft = (two.width/2) - ((pixelSize+pixelSpacing)*canvasSize/2);
+    var startTop = (two.height/2) - ((pixelSize+pixelSpacing)*canvasSize/2);
+
+    var left = startLeft + col*(pixelSize+2);
+    var top = startTop + row*(pixelSize+2);
+
+  	var rect = two.makeRectangle(left, top, pixelSize, pixelSize);
+	  rect.noStroke().fill = color;
+
+	  rect.domElement = document.querySelector('#two-' + rect.id);
+    rect.domElement.style.cursor = 'pointer';
+    rect.domElement.addEventListener('click', function(e) {
+        var newColor = getNextColor(rect.fill);
+        rect.fill = newColor;
+        firebaseCanvasData.child(row+':'+col).set(newColor);
+      }, false);
+
+    return rect;
+  }
+
+  function renderPixel(row, col, color) {
+    if(!drawingCanvas[row] || !drawingCanvas[row][col] || !drawingCanvas[row][col].rect) {
+      var newPixel = createPixel(row, col, color);
+      drawingCanvas[row] = {};
+      drawingCanvas[row][col] = newPixel;
+    } else {
+      var rect = drawingCanvas[row][col].rect;
+      rect.fill = color;
+    }
+  }
+
+
   function getNextColor(currentColor) {
   	var currentIndex = colorPallete.indexOf(currentColor);
   	//console.log("Index: " + (currentIndex + 1) % colorPallete.length)
     return colorPallete[(currentIndex + 1) % colorPallete.length];
   }
 
-  function getRandomColor() {
-    return 'rgb('
-      + Math.floor(Math.random() * 255) + ','
-      + Math.floor(Math.random() * 255) + ','
-      + Math.floor(Math.random() * 255) + ')';
-  }
+  firebaseCanvasData.on('value', function(dataSnapshot) {
+    if(!dataSnapshot.val()) {
+      console.log("createBlankCanvas()");
+      createBlankCanvas();
+    }
+  });
 
-  drawCanvas();
+  firebaseCanvasData.on('child_added', function(childSnapshot, prevChildName) {
+    console.log('New:', childSnapshot.name(), childSnapshot.val());
+    
+    var row = childSnapshot.name().split(':')[0];
+    var col = childSnapshot.name().split(':')[1];
+    var color = childSnapshot.val();
+
+    renderPixel(row, col, color);
+  });
+
+  firebaseCanvasData.on('child_changed', function(childSnapshot, prevChildName) {
+    console.log('Update:', childSnapshot.name(), childSnapshot.val());
+
+    var row = childSnapshot.name().split(':')[0];
+    var col = childSnapshot.name().split(':')[1];
+    var color = childSnapshot.val();
+
+    renderPixel(row, col, color);
+  });
+
 
 </script>
 
