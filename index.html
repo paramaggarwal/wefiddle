@@ -7,14 +7,13 @@
 </head>
 
 <body>
-<h2>WeFiddle - A collaborative art space.</h2>
-<p>Play around with the canvas below. Others can also edit it. Create art together!</p>
-<p>Code on <a href="http://github.com/paramaggarwal/wefiddle">Github</a>. Created by <a href="http://twitter.com/paramaggarwal">@paramaggarwal</a>, follow me!</p>
 <script type="text/javascript">
 	
   var firebaseCanvasData = new Firebase('https://wefiddle.firebaseio.com/');
 
   var two = new Two({
+    height: 660,
+    width: 660,
     autostart: true
   }).appendTo(document.body);
 
@@ -24,9 +23,9 @@
   	'rgb(60, 240, 60)'
   	];
 
-  var canvasSize = 20;
+  var canvasSize = 30;
   var pixelSize = 20;
-  var pixelSpacing = 2;
+  var pixelSpacing = 1;
   
   var drawingCanvas = [];
 
@@ -47,8 +46,8 @@
     var startLeft = (two.width/2) - ((pixelSize+pixelSpacing)*canvasSize/2);
     var startTop = (two.height/2) - ((pixelSize+pixelSpacing)*canvasSize/2);
 
-    var left = startLeft + col*(pixelSize+2);
-    var top = startTop + row*(pixelSize+2);
+    var left = startLeft + col*(pixelSize+pixelSpacing);
+    var top = startTop + row*(pixelSize+pixelSpacing);
 
   	var rect = two.makeRectangle(left, top, pixelSize, pixelSize);
 	  rect.noStroke().fill = color;
@@ -111,6 +110,10 @@
 
 
 </script>
-
+<div style="float: right;">
+<h2>WeFiddle - A collaborative art space.</h2>
+<p>Play around with the canvas below. Others can also edit it. Create art together!</p>
+<p>Code on <a href="http://github.com/paramaggarwal/wefiddle">Github</a>. Created by <a href="http://twitter.com/paramaggarwal">@paramaggarwal</a>, follow me!</p>
+</div>
 </body>
 </html>
